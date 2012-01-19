@@ -61,6 +61,8 @@ Nagios anyway.
 Then all you need to do is check the top line ($cgi_ini) of inc.php is the path to your Nagios installation
 (more specifically you need to point it at the CGI config file, usually called cgi.cfg). 
 
+Additionally in inc.php, you can set URL to your standard Nagios installation with the $nagios_home
+variable
 
 
 4. Using Naglite2
@@ -90,3 +92,5 @@ No! Well maybe. Send me an email, and I can probably offer some advice. I apolog
 
 This code uses Duration.php which is a class that turns durations into more friendly, readable 
 versions. (e.g. 2 days ago). This was written by Aidan Lister <aidan@php.net>
+
+This code also uses Bootstrap from Twitter for CSS styling

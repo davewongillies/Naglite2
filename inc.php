@@ -7,7 +7,8 @@
 #
 
 # The path to your Nagios config CGI config. 
-$cgi_ini='/usr/local/nagios/etc/cgi.cfg';
+$cgi_ini='/etc/nagios3/cgi.cfg';
+$nagios_home='http://mythtv.local/nagios/';
 
 # Then use the above to get the path to the main config file. 
 $nagios_cfg = ini_getitem($cgi_ini, "main_config_file");

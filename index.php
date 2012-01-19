@@ -4,45 +4,17 @@
 #	Modified by Laurie Denness
 #
 
-		# Try and prevent caching and provide some refresh intervals (customisable)
-		header("Pragma: no-cache");
-		if (!isset($_GET['refresh'])) { $_GET['refresh'] = "10"; } 
-		header("Refresh: " .$_GET['refresh']);
+	# Try and prevent caching and provide some refresh intervals (customisable)
+	header("Pragma: no-cache");
+	if (!isset($_GET['refresh'])) { $_GET['refresh'] = "60"; } 
+	header("Refresh: " .$_GET['refresh']);
+	
+	# Library for calculating friendly durations
+	require_once 'Duration.php';
 
-		# Library for calculating friendly durations
-		require_once 'Duration.php';
+	# All the hard work is done in here. 
+	require 'inc.php';
 
-?>
-
-
-<HTML>
-<HEAD>
-<TITLE>Nagios Monitoring System - Naglite2</TITLE>
-<style>
-body { 
-	font-family: Verdana, "Tahoma", "Helvetica", "arial", "sans";
-	margin-left: 0px;
-	margin-right: 0px;
-}
-
-.smallack {
-font-size:12px;
-}
-
-</style>
-</HEAD>
-<BODY BGCOLOR="#FFFFFF">
-
-
-<?
-
-# All the hard work is done in here. 
-require 'inc.php';
-
-?>
-<CENTER>
-
-<?
 	if (is_file($status_file)) {
 		$file = file_get_contents($status_file);
 	}
@@ -62,9 +34,6 @@ require 'inc.php';
 		handle_line($line[$x]);
 	}
 
-?>
-
-<?
 	if(is_array($hlist)) 
 	foreach (array_keys($hlist) as $hkey) {
 	
@@ -236,18 +205,67 @@ require 'inc.php';
 
 		}
 	}
+?>
 
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Nagios Dashboard</title>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
 
-// Start the HTML magic!
+    <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
+    <style type="text/css">
+      body {
+        padding-top: 40px;
+      }
+     .status {
+		text-align:right;
+	}
+    </style>
+</head>
+<body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="container-fluid">
+          <? if($nagios_home) {
+           echo "<a href=\"$nagios_home\"><img src=\"nagios_logo.png\" class=\"brand\" /></a>";
+	  } else {
+           echo "<img src=\"nagios_logo.png\" class=\"brand\" />";
+          }; ?>
+          <ul class="nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#Hosts">Hosts
+            <?
+             if($goodhosts)		{ echo "<font color=\"green\">$goodhosts &#8593;</font>"; }
+             if($unreachable_hosts)	{ echo "<font color=\"orange\">&nbsp;$unreachable_hosts Unreachable</font>"; }
+             if($pending_hosts)		{ echo "<font color=\"grey\">&nbsp;$pending_hosts &#8635;</font>"; }
+             if($badhosts)		{ echo "<font color=\"red\">&nbsp;$badhosts &#8595;</FONT>"; }
+             if($ackhosts)		{ echo "<font color=\"darkgrey\">&nbsp;$ackhosts &#8595;(ack)</font>"; } ?>
+            </a></li>
+            <li><a href="#Services">Services
+            <?
+             if($services_ok) { echo "<FONT COLOR=\"green\">$services_ok &#10003;</FONT> "; }
+             if($services_warning) { echo "<FONT COLOR=\"orange\"> $services_warning &#10731;</FONT> "; }
+             if($services_critical) { echo "<FONT COLOR=\"red\"> $services_critical &#10007;</FONT> "; }
+             if($services_pending) { echo "<FONT COLOR=\"grey\"> $services_pending &#8613;</FONT> "; }
+             if($services_unknown) { echo "<FONT COLOR=\"lightgrey\"> $services_unknown &#8264;</FONT> "; }
+            ?></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
-echo "<TABLE BORDER=0 width=99%>";
-echo "<tr><td align=left><font size=+1><b>Host Status</b></td> <td align=right><b>";
-	if($goodhosts)  { echo "<FONT COLOR=\"green\">$goodhosts UP</FONT>"; }
+<?
+echo "<TABLE BORDER=0 cellspacing=2 >";
+echo "<tr><td align=\"left\"><h2><a name=\"Hosts\">Host Status</a></h2></td><td colspan=\"3\" class=\"status\" align=\"right\"><h2>";
+	if($goodhosts)  { echo "<FONT align=\"right\" COLOR=\"green\">$goodhosts UP</FONT>"; }
 	if($unreachable_hosts)  { echo "<FONT COLOR=\"orange\"> - $unreachable_hosts Unreachable</FONT>"; }
 	if($pending_hosts)  { echo "<FONT COLOR=\"grey\"> - $pending_hosts Pending</FONT>"; }
 	if($badhosts)  { echo "<FONT COLOR=\"red\"> - $badhosts DOWN</FONT>"; }
 	if($ackhosts)  { echo "<FONT COLOR=\"darkgrey\"> - $ackhosts Down (Ack)</FONT>"; }
-echo "</b></td></TABLE><TABLE BORDER=0 cellspacing=2 width=98%>\n";
+echo "</h2></td></tr>\n";
 
 // If there are blocked hosts, output the orange block to inform the user in a harsh fashion, but only takes up one line to keep room for everything else. 
 if(count ($listofblocked) > 0) {
@@ -263,7 +281,6 @@ if(count ($listofacked) > 0) {
 	$ackedout .= "</td></tr>";
 }
 
-
 if(strlen($hostsout)) {
 	echo "<TR bgcolor=\"lightgrey\">\n";
 	echo "\t<TH>Host</TH><TH>Status</TH><TH>Duration</TH><TH>Status Information</TH>\n";
@@ -278,21 +295,18 @@ if(strlen($hostsout)) {
 }
 	echo "</TABLE>\n";
 
-echo "<P>\n";
+	//echo "<font size=-1>\n";
 
-
-	echo "<FONT SIZE=-1>\n";
-
-        echo "<TABLE BORDER=0 width=99%>";
-        echo "<tr><td align=left><font size=+1><b>Service Status</b><font size=2> &nbsp;&nbsp;</td> <td align=right><b>";
-        if($services_ok) { echo "<FONT COLOR=\"green\">$services_ok OK</FONT> "; }
-        if($services_warning) { echo "<FONT COLOR=\"orange\"> - $services_warning Warn</FONT> "; }
-        if($services_critical) { echo "<FONT COLOR=\"red\"> - $services_critical Crit</FONT> "; }
-        if($services_pending) { echo "<FONT COLOR=\"grey\"> - $services_pending Pending</FONT> "; }
-        if($services_unknown) { echo "<FONT COLOR=\"lightgrey\"> - $services_unknown Unknown</FONT> "; }
-
-
-	echo "</b></td></TABLE><TABLE BORDER=0 cellspacing=2 width=98%>\n";
+        echo "<table border=0 width=99%>";
+        echo "<tr>
+               <td align=left><h2><a name=\"Services\">Service Status</a></h2></td>
+               <td colspan=\"4\" class=\"status\" align=\"right\"><h2>";
+                if($services_ok) { echo "<FONT COLOR=\"green\">$services_ok OK</FONT> "; }
+                if($services_warning) { echo "<FONT COLOR=\"orange\"> - $services_warning Warn</FONT> "; }
+                if($services_critical) { echo "<FONT COLOR=\"red\"> - $services_critical Crit</FONT> "; }
+                if($services_pending) { echo "<FONT COLOR=\"grey\"> - $services_pending Pending</FONT> "; }
+                if($services_unknown) { echo "<FONT COLOR=\"lightgrey\"> - $services_unknown Unknown</FONT> "; }
+	echo "</h2></td></tr>\n";
 
 if(strlen($servicesout_warning) || strlen($servicesout_error)) {
 	echo "<TR bgcolor=\"lightgrey\">\n";
@@ -303,21 +317,16 @@ if(strlen($servicesout_warning) || strlen($servicesout_error)) {
 } else {
 	echo "<TR>\n<TH COLSPAN=8 BGCOLOR=\"lightgreen\"><FONT SIZE =+1>ALL MONITORED SERVICES OK</FONT></TH>\n</TR>\n";
 }
-
-
-
-
-
-echo "</TABLE><br /><br />";
+echo "</TABLE>";
 
 
 // Ackknowledged services get a seperate line to save space
 if(strlen($servicesout_ack)) {
 
         echo "<TABLE BORDER=0 width=99%>";
-        echo "<tr><td align=left><b>Acknowledged Services</b><font size=2> &nbsp;&nbsp;</td> <td align=right><b>";
+        echo "<tr><td align=left><h2>Acknowledged Services</h2><font size=2> &nbsp;&nbsp;</td> <td class=\"status\" align=right><h2>";
         echo "<FONT COLOR=\"darkgrey\">$services_ack Acknowledged</FONT> ";
-	echo "</b></td></TABLE>\n";
+	echo "</h2></td></TABLE>\n";
 	echo "<TABLE BORDER=0 cellspacing=2 width=98%><TR bgcolor=\"lightgrey\" class=\"smallack\">\n";
 	echo "\t<TH>Host</TH><TH>Service</TH><TH>Status</TH><TH>Duration</TH><TH><font size=\"1\">A</font></TH>\n";
 	echo "</TR>\n";
@@ -334,9 +343,7 @@ if(strlen($notifications_off)) {
 	echo "<TD>".$notifications_off."</TD>\n";
 	echo "</TR></TABLE>\n";
 }
-
-	echo "<P>"; ?>
-<img src="http://cdn.last.fm/flatness/badges/lastfm_grey_small.gif" alt="this ugly code hacked into submission by lozzd" align="right">
+?>
 
 <?
 	if ($_GET["debug"] == true) {
@@ -356,5 +363,5 @@ if(strlen($notifications_off)) {
 	echo "</TR>\n";
 	echo "</TABLE>\n"; }
 ?>
-</BODY>
-</HTML>
+</body>
+</html>
